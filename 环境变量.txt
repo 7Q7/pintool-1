@@ -1,4 +1,4 @@
-
+win7环境变量顺序
 Otc20--1150
 include
 C:\Program Files\Microsoft Visual Studio 11.0\VC\include;C:\pin-3.7-97619-g0d0c92f4f-msvc-windows\source\include\pin;C:\Program Files\Windows Kits\8.0\Include\um;C:\Program Files\Windows Kits\8.0\Include\shared;C:\pin-3.7-97619-g0d0c92f4f-msvc-windows\extras\crt\include
