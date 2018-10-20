@@ -1,0 +1,10 @@
+1020--1150
+include
+C:\Program Files\Microsoft Visual Studio 11.0\VC\include;C:\pin-3.7-97619-g0d0c92f4f-msvc-windows\source\include\pin;C:\Program Files\Windows Kits\8.0\Include\um;C:\Program Files\Windows Kits\8.0\Include\shared;C:\pin-3.7-97619-g0d0c92f4f-msvc-windows\extras\crt\include
+
+
+lib
+C:\Program Files\Windows Kits\8.0\Lib\win8\um\x86
+
+path
+%SystemRoot%\system32;%SystemRoot%;%SystemRoot%\System32\Wbem;%SYSTEMROOT%\System32\WindowsPowerShell\v1.0\;C:\Program Files\Windows Kits\8.0\Windows Performance Toolkit\;C:\Program Files\Microsoft SQL Server\110\Tools\Binn\;%vs11%\VC;%vs11%\VC\bin;%vs11%\Common7\Tools;%vs11%\Common7\IDE;%pindir%\;%pindir%\source\include\pin;C:\pin-3.7-97619-g0d0c92f4f-msvc-windows\source\include\pin;C:\cygwin\bin\;C:\Program Files\TortoiseGit\bin;C:\Program Files\Git\cmd

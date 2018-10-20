@@ -1,9 +1,9 @@
 Exception: STATUS_ACCESS_VIOLATION at eip=6105DD5C
 eax=00030000 ebx=612A0FFC ecx=0022C97C edx=60FC0000 esi=00000002 edi=612A0FDC
-ebp=0022CC78 esp=0022C920 program=C:\cygwin\bin\sh.exe, pid 4028, thread main
+ebp=0022CC78 esp=0022C920 program=C:\cygwin\bin\sh.exe, pid 1368, thread main
 cs=001B ds=0023 es=0023 fs=003B gs=0000 ss=0023
 Stack trace:
 Frame     Function  Args
-0022CC78  6105DD5C (00000003, 0022CC9C, 4C1800D0, 612A4AE0)
+0022CC78  6105DD5C (00000003, 0022CC9C, 4C1800D0, 612A4D28)
 0022CD28  61007A67 (00000000, 0022CD84, 61006A60, 00000000)
 End of stack trace

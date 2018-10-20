@@ -38,27 +38,22 @@ END_LEGAL */
 
 FILE * trace;
 
-// Print a memory read record
-VOID RecordMemRead(VOID * ip, VOID * addr)
-{
-    fprintf(trace,"%p: R %p\n", ip, addr);
-}
 //---start打印ip指令地址---
 // Pin calls this function every time a new instruction is encountered 
-VOID printip(VOID *ip) { fprintf(trace, "%p\n", ip); }
-
-
-VOID Instruction(INS ins, VOID *v)
-{
-    // Insert a call to printip before every instruction, and pass it the IP
-    INS_InsertCall(ins, IPOINT_BEFORE, (AFUNPTR)printip, IARG_INST_PTR, IARG_END);
-}
+VOID printip(VOID *ip) { fprintf(trace, "ip: %p\n", ip); }
 //===end 打印ip指令地址 ===
+
+// Print a memory read record
+VOID RecordMemRead(VOID * ip, VOID * addr)
+{//ip为指令的内存地址，指令名字，涉及到的寄存器，addr为指令的访问地址。
+    fprintf(trace,"%p:ip: R_mem %p\n",
+		              ip, addr);//加指令，寄存器
+}
 
 // Print a memory write record
 VOID RecordMemWrite(VOID * ip, VOID * addr)
 {
-    fprintf(trace,"%p: W %p\n", ip, addr);
+    fprintf(trace,"%p:ip: W %p\n", ip, addr);//加寄存器
 }
 
 // Is called for every instruction and instruments reads and writes
@@ -75,6 +70,7 @@ VOID Instruction(INS ins, VOID *v)
     // Iterate over each memory operand of the instruction.
     for (UINT32 memOp = 0; memOp < memOperands; memOp++)
     {
+	 // Insert a call to printip before every instruction, and pass it the
         if (INS_MemoryOperandIsRead(ins, memOp))
         {
             INS_InsertPredicatedCall(
