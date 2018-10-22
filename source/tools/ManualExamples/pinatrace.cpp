@@ -42,8 +42,14 @@ FILE * feature3InsContent;//当前指令内容，包括所访问的相应寄存器名称，操作码信息
 FILE * feature4Ins8Reg;//当前指令执行时的8个通用寄存器内容.
 FILE * feature5InsCR3;//控制寄存器（CR3）内容
 FILE * feature6InsProcessID;//进程ID
+FILE * featureInsCount;//进程ID
 
-//---start打印ip指令地址---
+static UINT64 icount = 0;
+
+// This function is called before every instruction is executed
+VOID docount() { icount++; }
+
+//---start feature2InsIp 打印ip指令地址---
 // Pin calls this function every time a new instruction is encountered 
 VOID printip(VOID *ip) { fprintf(feature2InsIp, "ip: %p\n", ip); }
 //===end 打印ip指令地址 ===
@@ -51,30 +57,84 @@ VOID printip(VOID *ip) { fprintf(feature2InsIp, "ip: %p\n", ip); }
 // Print a memory read record
 VOID RecordMemRead(VOID * ip, VOID * addr)
 {//ip为指令的内存地址，指令名字，涉及到的寄存器，addr为指令的访问地址。
-    fprintf(feature1RegMem,"R_mem %p\n", addr);//加指令，涉及到的8种寄存器
+    fprintf(feature1RegMem,"R_mem: %p\n", addr);//加指令，涉及到的8种寄存器
 }
 
 // Print a memory write record
 VOID RecordMemWrite(VOID * ip, VOID * addr)
 {
-    fprintf(feature1RegMem,"W_mem %p\n", addr);//加寄存器
+    fprintf(feature1RegMem,"W_mem: %p\n", addr);//加寄存器
 }
 
-// Is called for every instruction and instruments reads and writes
+//---start 寄存器的名字---
+ADDRINT ReadReg(REG reg, ADDRINT * addr)
+{
+    //*out << "Emulate loading from addr " << addr << " to " << REG_StringShort(reg) << endl;
+	fprintf(feature1RegMem,"R_reg: %p\n", REG_StringShort(reg));//加寄存器
+    ADDRINT value;
+    PIN_SafeCopy(&value, addr, sizeof(ADDRINT));//?
+    return value;
+}
+
+ADDRINT WriteReg(REG reg, ADDRINT * addr)
+{
+    //*out << "Emulate loading from addr " << addr << " to " << REG_StringShort(reg) << endl;
+	fprintf(feature1RegMem,"W_reg: %p\n", REG_StringShort(reg));//加寄存器
+    ADDRINT value;
+    PIN_SafeCopy(&value, addr, sizeof(ADDRINT));//?
+    return value;
+}
+//===end 寄存器的名字===
+
+//string 	LEVEL_CORE::INS_Disassemble (INS ins) 反汇编指令.打印指令内容。
+
+
 //---whz关键代码：打印内存地址
 VOID Instruction(INS ins, VOID *v)
 {
-    // Instruments memory accesses using a predicated call, i.e.
-    // the instrumentation is called iff the instruction will actually be executed.
-    //
-    // On the IA-32 and Intel(R) 64 architectures conditional moves and REP 
-    // prefixed instructions appear as predicated instructions in Pin.
-    UINT32 memOperands = INS_MemoryOperandCount(ins);
+	INS_InsertCall(ins, IPOINT_BEFORE, (AFUNPTR)docount, IARG_END);//统计指令条数
+		
+	INS_InsertCall(ins, IPOINT_BEFORE, (AFUNPTR)printip, IARG_INST_PTR, IARG_END);
 
-    // Iterate over each memory operand of the instruction.
+	LOG(icount +" 0 INS_Disassemble :"+INS_Disassemble(ins)+"\n");
+	LOG(icount +" 0 W_reg :"+REG_StringShort(INS_RegW(ins,0))+"\t\t\t R_reg :"+REG_StringShort(INS_RegR(ins,0))+"\n");
+	//LOG(icount +" 1 W_reg :"+REG_StringShort(INS_RegW(ins,1))+"\t\t\t R_reg :"+REG_StringShort(INS_RegR(ins,1))+"\n");
+	//LOG(icount +" 2 W_reg :"+REG_StringShort(INS_RegW(ins,2))+"\t\t\t R_reg :"+REG_StringShort(INS_RegR(ins,2))+"\n");
+	LOG(icount +" --------------  \n");
+
+    UINT32 memOperands = INS_MemoryOperandCount(ins);
+	fprintf(featureInsCount,"icount: %d ,memOperands:%d \n",icount,memOperands);
     for (UINT32 memOp = 0; memOp < memOperands; memOp++)
     {
-		
+		//LOG("INS_RegW :"+INS_RegW(ins,1)+"INS_RegR :"+INS_RegR(ins,1));
+		//if(INS_Opcode(ins) != XED_ICLASS_MOV && 
+		//	INS_IsMemoryRead(ins) && 
+		//	IARG_RegR(ins, 0)){//reg为ins的第0个操作数，写reg
+		//	INS_InsertCall(ins,
+		//				   IPOINT_BEFORE,
+		//				   AFUNPTR(WriteReg),
+		//				   IARG_UINT32,
+		//				   REG(INS_OperandReg(ins, 0)),//?
+		//				   IARG_MEMORYREAD_EA,
+		//				   IARG_RETURN_REGS,
+		//				   INS_OperandReg(ins, 0),
+		//				   IARG_END);
+		//}
+		//if(INS_Opcode(ins) != XED_ICLASS_MOV && 
+		//	INS_IsMemoryRead(ins) && 
+		//	INS_RegW(ins, 1)){//reg为ins的第1个操作数，读reg
+		//	INS_InsertCall(ins,
+		//				   IPOINT_BEFORE,
+		//				   AFUNPTR(ReadReg),
+		//				   IARG_UINT32,
+		//				   REG(INS_OperandReg(ins, 1)),//?
+		//				   IARG_MEMORYREAD_EA,
+		//				   IARG_RETURN_REGS,
+		//				   INS_OperandReg(ins, 1),
+		//				   IARG_END);
+		//}
+				 
+
         if (INS_MemoryOperandIsRead(ins, memOp))
         {
             INS_InsertPredicatedCall(
@@ -95,7 +155,6 @@ VOID Instruction(INS ins, VOID *v)
                 IARG_END);
         }
 
-		INS_InsertCall(ins, IPOINT_BEFORE, (AFUNPTR)printip, IARG_INST_PTR, IARG_END);
     }
 }
 
@@ -119,6 +178,9 @@ VOID Fini(INT32 code, VOID *v)
 	fprintf(feature6InsProcessID, "#eof\n");
     fclose(feature6InsProcessID);
 
+	fprintf(featureInsCount,"InsCount: %d \n",icount);
+	fprintf(featureInsCount, "#eof\n");
+    fclose(featureInsCount);
 }
 
 /* ===================================================================== */
@@ -146,6 +208,7 @@ int main(int argc, char *argv[])
 	feature4Ins8Reg = fopen("feature4Ins8Reg.out", "w");
 	feature5InsCR3 = fopen("feature5InsCR3.out", "w");
 	feature6InsProcessID = fopen("feature6InsProcessID.out", "w");
+	featureInsCount = fopen("featureInsCount.out", "w");
 
     INS_AddInstrumentFunction(Instruction, 0);
     PIN_AddFiniFunction(Fini, 0);

@@ -60,7 +60,7 @@ VOID EmulateLoad(INS ins, VOID* v)
         INS_OperandIsReg(ins, 0) &&
         INS_OperandIsMemory(ins, 1))
     {
-        // op0 <- *op1
+        // op0 register <- *op1 memory
         INS_InsertCall(ins,
                        IPOINT_BEFORE,
                        AFUNPTR(DoLoad),
