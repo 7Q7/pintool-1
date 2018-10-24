@@ -71,41 +71,46 @@ VOID printip(VOID *ip) { fprintf(feature2InsIp, "ip: %p\n", ip); }
 // Print a memory read record
 VOID RecordMemRead(VOID * ip, VOID * addr)
 {//ip为指令的内存地址，指令名字，涉及到的寄存器，addr为指令的访问地址。
-    fprintf(feature1RegMem,"R_mem: %p\n", addr);//加指令，涉及到的8种寄存器
+    fprintf(feature1RegMem,"R_mem: %p\n", addr);
+	if(isDebug){
+		LOG(decstr(icount)+",R_mem: "+ptrstr(addr)+"\n");
+	}
 }
 
 // Print a memory write record
 VOID RecordMemWrite(VOID * ip, VOID * addr)
 {
     fprintf(feature1RegMem,"W_mem: %p\n", addr);//加寄存器
+	if(isDebug){
+		LOG(decstr(icount)+",W_mem: "+ptrstr(addr)+"\n");
+	}
 }
 
-//---start 寄存器的名字---
-ADDRINT ReadReg(REG reg, ADDRINT * addr)
-{
-    //*out << "Emulate loading from addr " << addr << " to " << REG_StringShort(reg) << endl;
-	fprintf(feature1RegMem,"R_reg: %p\n", REG_StringShort(reg));//加寄存器
-    ADDRINT value;
-    PIN_SafeCopy(&value, addr, sizeof(ADDRINT));//?
-    return value;
-}
+////---start 寄存器的名字---
+//ADDRINT ReadReg(REG reg, ADDRINT * addr)
+//{
+//    //*out << "Emulate loading from addr " << addr << " to " << REG_StringShort(reg) << endl;
+//	fprintf(feature1RegMem,"R_reg: %p\n", REG_StringShort(reg));//加寄存器
+//    ADDRINT value;
+//    PIN_SafeCopy(&value, addr, sizeof(ADDRINT));//?
+//    return value;
+//}
+//
+//ADDRINT WriteReg(REG reg, ADDRINT * addr)
+//{
+//    //*out << "Emulate loading from addr " << addr << " to " << REG_StringShort(reg) << endl;
+//	fprintf(feature1RegMem,"W_reg: %p\n", REG_StringShort(reg));//加寄存器
+//    ADDRINT value;
+//    PIN_SafeCopy(&value, addr, sizeof(ADDRINT));//?
+//    return value;
+//}
+////===end 寄存器的名字===
 
-ADDRINT WriteReg(REG reg, ADDRINT * addr)
-{
-    //*out << "Emulate loading from addr " << addr << " to " << REG_StringShort(reg) << endl;
-	fprintf(feature1RegMem,"W_reg: %p\n", REG_StringShort(reg));//加寄存器
-    ADDRINT value;
-    PIN_SafeCopy(&value, addr, sizeof(ADDRINT));//?
-    return value;
-}
-//===end 寄存器的名字===
-
-//string 	LEVEL_CORE::INS_Disassemble (INS ins) 反汇编指令.打印指令内容。
 VOID RecordInsStr(string * insPoniter)
 {
 	fprintf(feature3InsContent, "a: %s\n", insPoniter->c_str());//特征3：原指令
 	if(isDebug){
-		LOG(decstr(icount)+",INS_Disassemble :"+insPoniter->c_str()+"\n");
+		LOG(decstr(icount)+",a: "+insPoniter->c_str()+"\n");
 	}
 }
 
@@ -117,11 +122,48 @@ VOID RecordReadReg(string * readRegPointer)
 	}
 }
 
-VOID RecordWriteReg(string * readWritePointer)
+VOID RecordWriteReg(string * writeRegPointer)
 {
-	fprintf(feature1RegMem, "W_reg: %s\n", readWritePointer->c_str());//特征1：读入的寄存器
+	fprintf(feature1RegMem, "W_reg: %s\n", writeRegPointer->c_str());//特征1：读入的寄存器
 	if(isDebug){
-		LOG(decstr(icount)+",W_reg :"+readWritePointer->c_str()+"\n");
+		LOG(decstr(icount)+",W_reg :"+writeRegPointer->c_str()+"\n");
+	}
+}
+
+VOID Record8RegContent(const CONTEXT * ctxt)
+{
+		//ADDRINT reg_ip =PIN_GetContextReg( ctxt, REG_INST_PTR );
+	ADDRINT ax = PIN_GetContextReg( ctxt, REG_GAX );
+	ADDRINT bx = PIN_GetContextReg( ctxt, REG_GBX );
+	ADDRINT cx = PIN_GetContextReg( ctxt, REG_GCX );
+	ADDRINT dx = PIN_GetContextReg( ctxt, REG_GDX );
+	ADDRINT si = PIN_GetContextReg( ctxt, REG_GSI );
+	ADDRINT di = PIN_GetContextReg( ctxt, REG_GDI );
+	ADDRINT bp = PIN_GetContextReg( ctxt, REG_GBP );
+	ADDRINT sp = PIN_GetContextReg( ctxt, REG_ESP );
+	//ADDRINT flags = PIN_GetContextReg(ctxt, REG_GFLAGS); //
+
+	fprintf(feature4Ins8Reg, "EAX:%d EBX:%d ECX:%d EDX:%d EBP:%d ESP:%d EDI:%d ESI:%d\n", ax,bx,cx,dx,si,di,bp,sp);//特征1：读入的寄存器
+	if(isDebug){
+		LOG(decstr(icount)+",EAX:"+decstr(ax)+",EBX:"+decstr(bx)+",ECX:"+decstr(cx)+",EDX:"+decstr(dx)
+			+",ESI:"+decstr(si)+",EDI:"+decstr(di)+",EBP:"+decstr(bp)+",ESP"+decstr(sp)+"\n");
+	}
+}
+
+VOID RecordCR3Content(const CONTEXT * ctxt)
+{
+	ADDRINT cr3 = PIN_GetContextReg( ctxt, REG_CR3 );
+	fprintf(feature5InsCR3, "CR3:%d\n", cr3);//特征5：cr3寄存器
+	if(isDebug){
+		LOG(decstr(icount)+",cr3:"+decstr(cr3)+"\n");
+	}
+}
+
+VOID Recordpid()
+{
+	fprintf(feature6InsProcessID, "ID:%d\n", PIN_GetPid());//特征6：当前进程id
+	if(isDebug){
+		LOG(decstr(icount)+",ID:"+decstr(PIN_GetPid())+"\n");
 	}
 }
 
@@ -150,7 +192,7 @@ VOID Instruction(INS ins, VOID *v)
     // prefixed instructions appear as predicated instructions in Pin.
     UINT32 memOperands = INS_MemoryOperandCount(ins);
 	if(isDebug){
-		LOG(decstr(icount)+",memOperands="+ decstr(memOperands)+" ------start 5--------  \n ");
+		LOG(decstr(icount)+",memOperands="+ decstr(memOperands)+" -----------------  \n ");
 	}
 
     for (UINT32 memOp = 0; memOp < memOperands; memOp++){
@@ -165,7 +207,8 @@ VOID Instruction(INS ins, VOID *v)
         // Note that in some architectures a single memory operand can be 
         // both read and written (for instance incl (%eax) on IA-32)
         // In that case we instrument it once for read and once for write.
-        if (INS_MemoryOperandIsWritten(ins, memOp)){
+        if (INS_MemoryOperandIsWritten(ins, memOp))
+		{
             INS_InsertPredicatedCall(
                 ins, IPOINT_BEFORE, (AFUNPTR)RecordMemWrite,
                 IARG_INST_PTR,
@@ -176,26 +219,26 @@ VOID Instruction(INS ins, VOID *v)
     }
 	//===特征1 end========================
 
-	//------特征2 start-----
-	INS_InsertPredicatedCall(ins, IPOINT_BEFORE, (AFUNPTR)printip, IARG_INST_PTR, IARG_END);//特征2：指令存放的ip地址
+	//------特征2 start-----：指令存放的ip地址
+	INS_InsertPredicatedCall(ins, IPOINT_BEFORE, (AFUNPTR)printip, IARG_INST_PTR, IARG_END);//特征2
 	//===特征2 end========================
 
-	//------特征3 start-----
+	//------特征3 start--汇编指令的内容 输入到文件。
 	string * insPoniter = new string(INS_Disassemble(ins));
-	INS_InsertCall(ins, IPOINT_BEFORE, (AFUNPTR)RecordInsStr,IARG_PTR, insPoniter, IARG_END);//特征3：指令内容
+	INS_InsertCall(ins, IPOINT_BEFORE, (AFUNPTR)RecordInsStr,IARG_PTR, insPoniter, IARG_END);//特征3
 	//===特征3 end=======================
 
 	//-----特征4 start-当前指令执行时的8个通用寄存器内容----IARG_REG_VALUE 
-	//ADDRINT reg_ip =PIN_GetContextReg( ctxt, REG_INST_PTR );
-	//ADDRINT ax = PIN_GetContextReg( ctxt, REG_GAX );
-	//ADDRINT bx = PIN_GetContextReg( ctxt, REG_GBX );
-	//ADDRINT cx = PIN_GetContextReg( ctxt, REG_GCX );
-	//ADDRINT dx = PIN_GetContextReg( ctxt, REG_GDX );
-	//ADDRINT si = PIN_GetContextReg( ctxt, REG_GSI );
-	//ADDRINT di = PIN_GetContextReg( ctxt, REG_GDI );
-	//ADDRINT bp = PIN_GetContextReg( ctxt, REG_GBP );
-	//ADDRINT sp = PIN_GetContextReg( ctxt, REG_ESP );
-	//ADDRINT flags = PIN_GetContextReg(ctxt, REG_GFLAGS);
+	INS_InsertCall(ins, IPOINT_BEFORE, (AFUNPTR)Record8RegContent,IARG_CONTEXT, IARG_END);//特征4
+	//=====特征4 end=======================
+
+	//---特征5  CR3寄存器内容--
+	INS_InsertCall(ins, IPOINT_BEFORE, (AFUNPTR)RecordCR3Content,IARG_CONTEXT, IARG_END);//特征5
+	//===特征5 end=======================
+
+	//---特征6 进程id--
+	INS_InsertCall(ins, IPOINT_BEFORE, (AFUNPTR)Recordpid, IARG_END);//特征5
+	//===特征6 end=======================
 }
 
 VOID Fini(INT32 code, VOID *v)
