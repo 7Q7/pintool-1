@@ -170,8 +170,7 @@ VOID RecordWriteReg(string * writeRegPointer)
 }
 
 VOID Record8RegContent(const CONTEXT * ctxt)
-{
-		//ADDRINT reg_ip =PIN_GetContextReg( ctxt, REG_INST_PTR );
+{//8 univsal reg
 	ADDRINT ax = PIN_GetContextReg( ctxt, REG_GAX );
 	ADDRINT bx = PIN_GetContextReg( ctxt, REG_GBX );
 	ADDRINT cx = PIN_GetContextReg( ctxt, REG_GCX );
@@ -180,12 +179,23 @@ VOID Record8RegContent(const CONTEXT * ctxt)
 	ADDRINT di = PIN_GetContextReg( ctxt, REG_GDI );
 	ADDRINT bp = PIN_GetContextReg( ctxt, REG_GBP );
 	ADDRINT sp = PIN_GetContextReg( ctxt, REG_ESP );
-	//ADDRINT flags = PIN_GetContextReg(ctxt, REG_GFLAGS); //
+	//4 segment reg
+	ADDRINT reg_seg_cs =PIN_GetContextReg( ctxt, REG_SEG_CS);
+	ADDRINT reg_seg_ds =PIN_GetContextReg( ctxt, REG_SEG_DS);
+	ADDRINT reg_seg_ss =PIN_GetContextReg( ctxt, REG_SEG_SS);
+	ADDRINT reg_seg_es =PIN_GetContextReg( ctxt, REG_SEG_ES);
+	//2 control reg
+	ADDRINT reg_ip =PIN_GetContextReg( ctxt, REG_INST_PTR );
+	ADDRINT flags = PIN_GetContextReg(ctxt, REG_GFLAGS);
 
 	if(isDebug){
 		LOG(decstr(icount)+",EAX:"+StringFromAddrint(ax)+",EBX:"+StringFromAddrint(bx)+",ECX:"+StringFromAddrint(cx)+",EDX:"+StringFromAddrint(dx)
-			+",ESI:"+StringFromAddrint(si)+",EDI:"+StringFromAddrint(di)+",EBP:"+StringFromAddrint(bp)+",ESP:"+StringFromAddrint(sp)+"\n");
-	}else{
+			+",ESI:"+StringFromAddrint(si)+",EDI:"+StringFromAddrint(di)+",EBP:"+StringFromAddrint(bp)+",ESP:"+StringFromAddrint(sp)+
+
+			",EAX:"+StringFromAddrint(ax)+",EBX:"+StringFromAddrint(bx)+",ECX:"+StringFromAddrint(cx)+",EDX:"+StringFromAddrint(dx)+
+
+			",reg_ip:"+StringFromAddrint(bp)+",flags:"+StringFromAddrint(flags)+"\n");
+	//}else{
 		if(isSeparateFile){
 			//fprintf(feature4Ins8Reg, "EAX:%d EBX:%d ECX:%d EDX:%d EBP:%d ESP:%d EDI:%d ESI:%d\n", ax,bx,cx,dx,si,di,bp,sp);
 			fprintf(feature4Ins8Reg, "EAX:0x%08x EBX:0x%08x ECX:0x%08x EDX:0x%08x EBP:0x%08x ESP:0x%08x EDI:0x%08x ESI:0x%08x\n", 
@@ -229,13 +239,15 @@ VOID Recordpid()
 //---whz关键代码：打印内存地址
 VOID Instruction(INS ins, VOID *v)
 {
-	//if(icount==500){
-	//	return;
-	//}
 	if(isDebug){
 		INS_InsertPredicatedCall(ins, IPOINT_BEFORE, (AFUNPTR)docount, IARG_END);//统计指令条数
 	}
-	//------特征3 start--汇编指令的内容 输入到文件。
+
+	//-----特征4 start-当前指令执行时的8个通用寄存器内容----iarg_reg_value 
+	INS_InsertCall(ins, IPOINT_BEFORE, (AFUNPTR)Record8RegContent,IARG_CONTEXT, IARG_END);//特征4
+	//=====特征4 end=======================
+
+	//------特征3 start--汇编指令的内容 输入到feature3InsContent 文件。
 	string * insPoniter = new string(INS_Disassemble(ins));
 	INS_InsertCall(ins, IPOINT_BEFORE, (AFUNPTR)RecordInsStr,IARG_PTR, insPoniter, IARG_END);//特征3
 	//===特征3 end=======================
@@ -289,12 +301,6 @@ VOID Instruction(INS ins, VOID *v)
 	//------特征2 start-----：指令存放的ip地址
 	INS_InsertPredicatedCall(ins, IPOINT_BEFORE, (AFUNPTR)printip, IARG_INST_PTR, IARG_END);//特征2
 	//===特征2 end========================
-
-
-
-	//-----特征4 start-当前指令执行时的8个通用寄存器内容----iarg_reg_value 
-	INS_InsertCall(ins, IPOINT_BEFORE, (AFUNPTR)Record8RegContent,IARG_CONTEXT, IARG_END);//特征4
-	//=====特征4 end=======================
 
 	//---特征5  CR3寄存器内容--
 	INS_InsertCall(ins, IPOINT_BEFORE, (AFUNPTR)RecordCR3Content,IARG_CONTEXT, IARG_END);//特征5
