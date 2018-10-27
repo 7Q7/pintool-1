@@ -46,7 +46,7 @@ ofstream OutFile;
 VOID Taken( const CONTEXT * ctxt)
 {
     ADDRINT TakenIP = (ADDRINT)PIN_GetContextReg( ctxt, REG_INST_PTR );
-    OutFile << "Taken: IP = " << hex << TakenIP << dec << endl;
+    OutFile << "Taken: IP = " << hex << TakenIP << dec << endl;//hex表示16进制
 }
 
 VOID Before(CONTEXT * ctxt)

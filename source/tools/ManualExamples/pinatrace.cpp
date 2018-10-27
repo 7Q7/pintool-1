@@ -190,14 +190,12 @@ VOID Record8RegContent(const CONTEXT * ctxt)
 
 	if(isDebug){
 		LOG(decstr(icount)+",EAX:"+StringFromAddrint(ax)+",EBX:"+StringFromAddrint(bx)+",ECX:"+StringFromAddrint(cx)+",EDX:"+StringFromAddrint(dx)
-			+",ESI:"+StringFromAddrint(si)+",EDI:"+StringFromAddrint(di)+",EBP:"+StringFromAddrint(bp)+",ESP:"+StringFromAddrint(sp)+
-
-			",EAX:"+StringFromAddrint(ax)+",EBX:"+StringFromAddrint(bx)+",ECX:"+StringFromAddrint(cx)+",EDX:"+StringFromAddrint(dx)+
-
-			",reg_ip:"+StringFromAddrint(bp)+",flags:"+StringFromAddrint(flags)+"\n");
-	//}else{
+			+",ESI:"+StringFromAddrint(si)+",EDI:"+StringFromAddrint(di)+",EBP:"+StringFromAddrint(bp)+",ESP:"+StringFromAddrint(sp)
+			+",reg_seg_cs:"+StringFromAddrint(reg_seg_cs)+",reg_seg_ds:"+StringFromAddrint(reg_seg_ds)
+			+",reg_seg_ss:"+StringFromAddrint(reg_seg_ss)+",reg_seg_es:"+StringFromAddrint(reg_seg_es)
+			+",reg_ip:"+StringFromAddrint(bp)+",flags:"+StringFromAddrint(flags)+"\n");
+	}else{
 		if(isSeparateFile){
-			//fprintf(feature4Ins8Reg, "EAX:%d EBX:%d ECX:%d EDX:%d EBP:%d ESP:%d EDI:%d ESI:%d\n", ax,bx,cx,dx,si,di,bp,sp);
 			fprintf(feature4Ins8Reg, "EAX:0x%08x EBX:0x%08x ECX:0x%08x EDX:0x%08x EBP:0x%08x ESP:0x%08x EDI:0x%08x ESI:0x%08x\n", 
 				ax,bx,cx,dx,si,di,bp,sp);
 		}else{
